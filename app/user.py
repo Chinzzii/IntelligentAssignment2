@@ -1,5 +1,5 @@
 class User:
-    def __init__(self, topic_rank, pid, history=None):
+    def __init__(self, topic_rank, pid, history=[]):
         """
         Initialize a User object.
         :param topic_rank: List of topic preferences (1: most preferred, 0: no preference)
@@ -8,7 +8,7 @@ class User:
         """
         self.topic_rank = topic_rank
         self.pid = pid
-        self.history = history if history else []
+        self.history = history
 
     def __str__(self):
         """Return the user's PID as a string."""
@@ -22,7 +22,10 @@ class User:
         :param user2: Second user
         :return: True if they have worked together, else False
         """
-        return user2.pid in user1.history
+        for user in user1.history:
+            if user2.pid == user:
+                return True
+        return False
 
     @staticmethod
     def user_with_pid(users, pid):

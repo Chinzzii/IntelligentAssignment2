@@ -22,25 +22,39 @@ def extract_users(req):
     """Extracts user data and returns the user information and ranks."""
     exper_data, users = [], []
     for user in req["users"]:
-        exper_data.append([float(data) for data in user["ranks"]])  # Convert ranks to float
+        exper_data.append(
+            [float(data) for data in user["ranks"]]
+        )  # Convert ranks to float
         # Create User objects with their historical data if available
         if "history" in user:
             users.append(User(exper_data[-1], user["pid"], user["history"]))
         else:
-            users.append(User(exper_data[-1], user["pid"]))  # Create User without history
+            users.append(
+                User(exper_data[-1], user["pid"])
+            )  # Create User without history
     return exper_data, users
 
 
 def send_data_as_json(teams):
     """Returns the team assignments as a JSON response."""
-    json_obj = [[user.pid for user in team.members] for team in teams]  # Format the team data
+    json_obj = [
+        [user.pid for user in team.members if user is not None] for team in teams
+    ]  # Format the team data, ignoring None values
     return flask.Response(
-        json.dumps({"teams": json_obj, "users": flask.request.json["users"]}),  # Send JSON response
+        json.dumps(
+            {"teams": json_obj, "users": flask.request.json["users"]}
+        ),  # Send JSON response
         mimetype="application/json",
     )
 
 
 app = Flask(__name__)
+
+
+@app.route("/")
+def home():
+    return "Server is running"
+
 
 # Route to handle team merging based on clustering
 @app.route("/merge_teams", methods=["POST"])
@@ -86,11 +100,15 @@ def ttctrading():
         flask.abort(400)  # Return 400 error if the request is malformed
     users = extract_users(flask.request.json)[1]  # Extract the users from the request
     teams = [
-        Team([User.user_with_pid(users, pid) for pid in data])  # Create teams using user PIDs
+        Team(
+            [User.user_with_pid(users, pid) for pid in data]
+        )  # Create teams using user PIDs
         for data in flask.request.json["teams"]
     ]
     ttc.team_swap(teams, users)  # Perform top trading cycle to swap team members
-    return send_data_as_json(teams)  # Return the teams after swapping as a JSON response
+    return send_data_as_json(
+        teams
+    )  # Return the teams after swapping as a JSON response
 
 
 if __name__ == "__main__":

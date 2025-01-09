@@ -5,6 +5,7 @@ from team import Team
 import team
 import weights as w
 
+
 def get_clusters(points):
     """
     Perform 2-means clustering on the points.
@@ -17,7 +18,9 @@ def get_clusters(points):
     # If two centroids are found, divide points into two clusters
     if len(centroids) == 2:
         for point in points:
-            if team.dist(centroids[0], point[:-1]) < team.dist(centroids[1], point[:-1]):
+            if team.dist(centroids[0], point[:-1]) < team.dist(
+                centroids[1], point[:-1]
+            ):
                 c1.append(point)
             else:
                 c2.append(point)
@@ -25,6 +28,7 @@ def get_clusters(points):
     else:  # If only one centroid, split points manually
         split = len(points) // 2
         return [points[:split], points[split:]]
+
 
 def build_teams(people, teams, max_size):
     """
@@ -39,6 +43,7 @@ def build_teams(people, teams, max_size):
     clusters = get_clusters(people)
     build_teams(clusters[0], teams, max_size)
     build_teams(clusters[1], teams, max_size)
+
 
 def kmeans_assignment(exper_data, users, max_size):
     """
@@ -55,7 +60,9 @@ def kmeans_assignment(exper_data, users, max_size):
     exper_data = [[weights[int(data) - 1] for data in row] for row in exper_data]
 
     # Identify users who did not bid for any topics
-    unbidded_users = [users[i] for i in range(len(exper_data)) if sum(exper_data[i]) == 0]
+    unbidded_users = [
+        users[i] for i in range(len(exper_data)) if sum(exper_data[i]) == 0
+    ]
     print(f"{len(unbidded_users)} student(s) who did not bid any topics.")
     for user in unbidded_users:
         print(user.pid)

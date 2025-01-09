@@ -1,6 +1,7 @@
 import math
 from user import User
 
+
 def dist(p1, p2):
     """
     Calculate the Euclidean distance between two points.
@@ -8,15 +9,16 @@ def dist(p1, p2):
     :param p2: Second point (list of coordinates)
     :return: Euclidean distance
     """
-    return math.sqrt(sum([(p1[i] - p2[i])**2 for i in range(len(p1))]))
+    return math.sqrt(sum([(p1[i] - p2[i]) ** 2 for i in range(len(p1))]))
+
 
 class Team:
-    def __init__(self, members=None):
+    def __init__(self, members):
         """
         Initialize a Team object.
         :param members: List of User objects in the team (default: empty list)
         """
-        self.members = members if members else []
+        self.members = members
 
     def __str__(self):
         """Return a comma-separated string of team members' PIDs."""
@@ -29,10 +31,19 @@ class Team:
         :return: List of users who have worked with others in the team
         """
         users = []
-        for member in self.members + extra_users:
-            for team_member in self.members + extra_users:
-                if member is not team_member and User.worked_with(member, team_member):
+        combined_users = self.members + extra_users
+
+        for member in combined_users:
+            if member is None:  # Skip if member is None
+                continue
+            for team_member in combined_users:
+                if (
+                    team_member is None or member is team_member
+                ):  # Skip None or self-comparisons
+                    continue
+                if User.worked_with(member, team_member):
                     users.append(member)
+                    break  # No need to check further for this member; move to the next one
         return users
 
     def centroid_value(self):
@@ -41,7 +52,8 @@ class Team:
         :return: List of average topic preferences for the team
         """
         return [
-            sum([member.topic_rank[topic] for member in self.members]) / len(self.members)
+            sum([member.topic_rank[topic] for member in self.members])
+            / len(self.members)
             for topic in range(len(self.members[0].topic_rank))
         ]
 
@@ -70,8 +82,8 @@ class Team:
             users,
             key=lambda user: (
                 dist(self.centroid_value(), user.topic_rank),
-                user in self.users_to_pawn([user])
-            )
+                user in self.users_to_pawn([user]),
+            ),
         )
 
     def team_prefs(self, teams):
@@ -80,7 +92,9 @@ class Team:
         :param teams: List of Team objects
         :return: Sorted list of teams
         """
-        return sorted(teams, key=lambda team: dist(self.centroid_value(), team.centroid_value()))
+        return sorted(
+            teams, key=lambda team: dist(self.centroid_value(), team.centroid_value())
+        )
 
     @staticmethod
     def team_with_user(teams, user):
